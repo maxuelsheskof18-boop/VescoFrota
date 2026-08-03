@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f2f74">
+
+  <title>Vesco Fleet Control</title>
+
+  <link rel="icon" type="image/png" href="https://cdn.abacus.ai/images/67a2cff5-4c77-47db-9276-c31e8ad096bd.png">
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <script src="script.js" defer></script>
+</head>
+
+<body>
+  <header class="app-header">
+    <div class="header-content">
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">
+          <i class="fa-solid fa-truck-moving"></i>
+        </div>
+
+        <div class="brand-copy">
+          <strong>Vesco Fleet Control</strong>
+          <span>Sistema de Gestão de Frota</span>
+        </div>
+      </div>
+
+      <div class="header-clock">
+        <strong id="currentDateTime">Carregando...</strong>
+        <span>Horário de Brasília (BRT)</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <nav class="tabs" aria-label="Tipos de registro">
+      <button
+        id="tabCheck"
+        class="tab-button tab-button--check is-active"
+        type="button"
+        role="tab"
+        aria-selected="true"
+        aria-controls="sectionCheck"
+      >
+        <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i>
+        <span>Verificação Diária</span>
+      </button>
+
+      <button
+        id="tabMaint"
+        class="tab-button tab-button--maintenance"
+        type="button"
+        role="tab"
+        aria-selected="false"
+        aria-controls="sectionMaint"
+      >
+        <i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i>
+        <span>Manutenção / Melhorias</span>
+      </button>
+    </nav>
+
+    <!-- VERIFICAÇÃO DIÁRIA -->
+    <section id="sectionCheck" class="tab-panel" role="tabpanel" aria-labelledby="tabCheck">
+      <form id="checkForm" novalidate>
+        <article class="card">
+          <div class="card-heading">
+            <div class="card-heading__icon card-heading__icon--blue" aria-hidden="true">
+              <i class="fa-solid fa-user"></i>
+            </div>
+
+            <div>
+              <h1>Informações do Motorista</h1>
+              <p>Identifique o motorista, o veículo e a quilometragem atual.</p>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="field-group">
+              <label for="driverName">Nome do Motorista</label>
+              <input
+                id="driverName"
+                name="driverName"
+                type="text"
+                maxlength="150"
+                autocomplete="name"
+                placeholder="Digite seu nome"
+                required
+              >
+            </div>
+
+            <div class="field-group">
+              <label for="vehicleCheck">Veículo (placa / modelo)</label>
+              <input
+                id="vehicleCheck"
+                name="vehicleCheck"
+                type="text"
+                maxlength="200"
+                placeholder="Ex.: ABC1D23 - VW Cargo"
+                required
+              >
+            </div>
+
+            <div class="field-group">
+              <label for="kmCheck">Quilometragem (KM)</label>
+              <input
+                id="kmCheck"
+                name="kmCheck"
+                type="number"
+                min="0"
+                step="1"
+                inputmode="numeric"
+                placeholder="Ex.: 123456"
+                required
+              >
+            </div>
+
+            <div class="date-time-grid">
+              <div class="field-group">
+                <label for="dateCheck">Data (Brasília)</label>
+                <input id="dateCheck" name="dateCheck" type="date" required>
+              </div>
+
+              <div class="field-group">
+                <label for="timeCheck">Hora (Brasília)</label>
+                <input id="timeCheck" name="timeCheck" type="time" required>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-heading">
+            <div class="card-heading__icon card-heading__icon--blue" aria-hidden="true">
+              <i class="fa-solid fa-list-check"></i>
+            </div>
+
+            <div>
+              <h2>Verificações do Veículo</h2>
+              <p>Selecione uma opção em cada item antes de registrar.</p>
+            </div>
+          </div>
+
+          <div class="check-grid">
+            <div class="check-item">
+              <div class="check-item__title">
+                <span>Nível de Água</span>
+                <i class="fa-solid fa-droplet check-icon check-icon--water" aria-hidden="true"></i>
+              </div>
+
+              <div class="toggle-group" role="group" aria-label="Nível de água">
+                <button type="button" data-field="water" data-value="ok" class="toggle-btn">OK</button>
+                <button type="button" data-field="water" data-value="complete" class="toggle-btn">Completar</button>
+              </div>
+
+              <input type="hidden" id="waterStatus" value="">
+            </div>
+
+            <div class="check-item">
+              <div class="check-item__title">
+                <span>Nível de Óleo</span>
+                <i class="fa-solid fa-oil-can check-icon check-icon--oil" aria-hidden="true"></i>
+              </div>
+
+              <div class="toggle-group" role="group" aria-label="Nível de óleo">
+                <button type="button" data-field="oil" data-value="ok" class="toggle-btn">OK</button>
+                <button type="button" data-field="oil" data-value="change" class="toggle-btn">Trocar</button>
+              </div>
+
+              <input type="hidden" id="oilStatus" value="">
+            </div>
+
+            <div class="check-item">
+              <div class="check-item__title">
+                <span>Freios</span>
+                <i class="fa-solid fa-shoe-prints check-icon check-icon--neutral" aria-hidden="true"></i>
+              </div>
+
+              <div class="toggle-group" role="group" aria-label="Freios">
+                <button type="button" data-field="brakes" data-value="ok" class="toggle-btn">OK</button>
+                <button type="button" data-field="brakes" data-value="maintenance" class="toggle-btn">Manutenção</button>
+              </div>
+
+              <input type="hidden" id="brakesStatus" value="">
+            </div>
+
+            <div class="check-item">
+              <div class="check-item__title">
+                <span>Luzes</span>
+                <i class="fa-solid fa-lightbulb check-icon check-icon--lights" aria-hidden="true"></i>
+              </div>
+
+              <div class="toggle-group" role="group" aria-label="Luzes">
+                <button type="button" data-field="lights" data-value="ok" class="toggle-btn">OK</button>
+                <button type="button" data-field="lights" data-value="replace" class="toggle-btn">Substituir</button>
+              </div>
+
+              <input type="hidden" id="lightsStatus" value="">
+            </div>
+
+            <div class="check-item check-item--wide">
+              <div class="check-item__title">
+                <span>Pneus</span>
+                <i class="fa-solid fa-circle-dot check-icon check-icon--neutral" aria-hidden="true"></i>
+              </div>
+
+              <div class="toggle-group toggle-group--three" role="group" aria-label="Pneus">
+                <button type="button" data-field="tires" data-value="ok" class="toggle-btn">OK</button>
+                <button type="button" data-field="tires" data-value="pressure" class="toggle-btn">Calibrar</button>
+                <button type="button" data-field="tires" data-value="replace" class="toggle-btn">Substituir</button>
+              </div>
+
+              <input type="hidden" id="tiresStatus" value="">
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="field-group">
+            <label for="observationsCheck">Observações / Ações a tomar</label>
+            <textarea
+              id="observationsCheck"
+              name="observationsCheck"
+              rows="5"
+              maxlength="2000"
+              placeholder="Descreva problemas, ruídos, sinais ou serviços necessários."
+            ></textarea>
+          </div>
+        </article>
+
+        <button id="submitCheck" class="submit-button submit-button--check" type="submit">
+          <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+          <span>Registrar Verificação</span>
+        </button>
+      </form>
+    </section>
+
+    <!-- MANUTENÇÃO / MELHORIAS -->
+    <section id="sectionMaint" class="tab-panel is-hidden" role="tabpanel" aria-labelledby="tabMaint" hidden>
+      <form id="maintenanceForm" novalidate>
+        <article class="card">
+          <div class="card-heading">
+            <div class="card-heading__icon card-heading__icon--amber" aria-hidden="true">
+              <i class="fa-solid fa-screwdriver-wrench"></i>
+            </div>
+
+            <div>
+              <h2>Registrar Manutenção / Melhoria</h2>
+              <p>Registre uma necessidade de manutenção, troca de peça ou melhoria.</p>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="field-group">
+              <label for="responsible">Responsável</label>
+              <input
+                id="responsible"
+                name="responsible"
+                type="text"
+                maxlength="150"
+                placeholder="Nome do solicitante"
+                required
+              >
+            </div>
+
+            <div class="field-group">
+              <label for="vehicleMaint">Veículo (placa / modelo)</label>
+              <input
+                id="vehicleMaint"
+                name="vehicleMaint"
+                type="text"
+                maxlength="200"
+                placeholder="Ex.: ABC1D23 - Ford Cargo"
+                required
+              >
+            </div>
+
+            <div class="field-group">
+              <label for="kmMaint">Quilometragem (KM)</label>
+              <input
+                id="kmMaint"
+                name="kmMaint"
+                type="number"
+                min="0"
+                step="1"
+                inputmode="numeric"
+                placeholder="Ex.: 123456"
+                required
+              >
+            </div>
+
+            <div class="date-time-grid">
+              <div class="field-group">
+                <label for="dateMaint">Data (Brasília)</label>
+                <input id="dateMaint" name="dateMaint" type="date" required>
+              </div>
+
+              <div class="field-group">
+                <label for="timeMaint">Hora (Brasília)</label>
+                <input id="timeMaint" name="timeMaint" type="time" required>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label for="maintenanceType">Tipo</label>
+              <select id="maintenanceType" name="maintenanceType" required>
+                <option value="">Selecione</option>
+                <option value="preventiva">Preventiva</option>
+                <option value="corretiva">Corretiva</option>
+                <option value="melhoria">Melhoria</option>
+                <option value="troca">Troca de Peças</option>
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label for="priority">Prioridade</label>
+              <select id="priority" name="priority" required>
+                <option value="">Selecione</option>
+                <option value="alta">Alta</option>
+                <option value="media">Média</option>
+                <option value="baixa">Baixa</option>
+              </select>
+            </div>
+
+            <div class="field-group field-group--full">
+              <label for="description">Descrição detalhada</label>
+              <textarea
+                id="description"
+                name="description"
+                rows="5"
+                maxlength="3000"
+                placeholder="Descreva o problema, serviço necessário ou melhoria."
+                required
+              ></textarea>
+            </div>
+
+            <div class="field-group">
+              <label for="cost">Custo estimado (R$)</label>
+              <input
+                id="cost"
+                name="cost"
+                type="number"
+                step="0.01"
+                min="0"
+                inputmode="decimal"
+                placeholder="Opcional"
+              >
+            </div>
+          </div>
+        </article>
+
+        <button id="submitMaint" class="submit-button submit-button--maintenance" type="submit">
+          <i class="fa-solid fa-plus" aria-hidden="true"></i>
+          <span>Registrar Solicitação</span>
+        </button>
+      </form>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true">
+    <i id="toastIcon" class="fa-solid fa-circle-check" aria-hidden="true"></i>
+    <span id="toastMessage">Operação concluída</span>
+  </div>
+</body>
+</html>
