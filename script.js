@@ -6,6 +6,7 @@
  */
 const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxyufThTQd639n9Vp-MR8pIiD90luMT6zc7imqmwsshRaco-1SLXwb84rhfazgvVPE/exec';
 const TIME_ZONE = 'America/Sao_Paulo';
+const EXPECTED_API_VERSION = '2.2.0-fotos-protocolo';
 
 const PHOTO_CONFIG = Object.freeze({
   maxPhotos: 5,
@@ -552,6 +553,41 @@ async function postJSON(payload) {
   }
 }
 
+
+function validateServerResult(result) {
+  if (!result || typeof result !== 'object') {
+    throw new Error('O servidor retornou uma resposta vazia ou inválida.');
+  }
+
+  if (result.status !== 'success' && result.success !== true) {
+    throw new Error(result.message || 'O servidor não conseguiu concluir o registro.');
+  }
+
+  const missingFields = [];
+
+  if (!result.protocol) missingFields.push('protocolo');
+  if (!Number.isInteger(Number(result.photoCount)) || Number(result.photoCount) < 1) {
+    missingFields.push('quantidade de fotos');
+  }
+  if (!result.reportFolderUrl) missingFields.push('link das fotos');
+
+  if (missingFields.length) {
+    throw new Error(
+      'O Apps Script publicado está desatualizado. Faltaram: ' +
+      missingFields.join(', ') +
+      '. Publique uma nova versão do Web App e tente novamente.'
+    );
+  }
+
+  if (result.apiVersion && result.apiVersion !== EXPECTED_API_VERSION) {
+    console.warn(
+      `Versão da API diferente. Esperada: ${EXPECTED_API_VERSION}. Recebida: ${result.apiVersion}.`
+    );
+  }
+
+  return result;
+}
+
 function clearPhotoCollection(section) {
   photoCollections[section].forEach((photo) => URL.revokeObjectURL(photo.previewUrl));
   photoCollections[section] = [];
@@ -581,9 +617,9 @@ function resetForm(form, photoSection) {
 
 function openResultDialog(result, vehicle) {
   lastResult = result;
-  elements.resultProtocol.textContent = result.protocol || '-';
+  elements.resultProtocol.textContent = result.protocol;
   elements.resultVehicle.textContent = vehicle || '-';
-  elements.resultPhotoCount.textContent = String(result.photoCount ?? 0);
+  elements.resultPhotoCount.textContent = String(result.photoCount);
 
   if (result.reportFolderUrl) {
     elements.openPhotosButton.href = result.reportFolderUrl;
@@ -673,9 +709,7 @@ async function handleCheckSubmit(event) {
 
     const result = await postJSON(payload);
 
-    if (result.status !== 'success' && result.success !== true) {
-      throw new Error(result.message || 'Não foi possível registrar a verificação.');
-    }
+    validateServerResult(result);
 
     showToast(result.message || 'Verificação registrada com sucesso.');
     resetForm(elements.checkForm, 'check');
@@ -717,9 +751,7 @@ async function handleMaintenanceSubmit(event) {
 
     const result = await postJSON(payload);
 
-    if (result.status !== 'success' && result.success !== true) {
-      throw new Error(result.message || 'Não foi possível registrar a manutenção.');
-    }
+    validateServerResult(result);
 
     showToast(result.message || 'Solicitação registrada com sucesso.');
     resetForm(elements.maintenanceForm, 'maintenance');

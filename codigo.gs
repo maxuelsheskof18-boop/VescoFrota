@@ -18,11 +18,13 @@ const CONFIG = Object.freeze({
    */
   SPREADSHEET_ID: '',
 
+  API_VERSION: '2.2.0-fotos-protocolo',
+
   /**
    * Cole o ID ou a URL completa da pasta que você criou no Google Drive.
    * Exemplo de ID: 1AbCdEfGhIjKlMnOpQrStUvWxYz
    */
-  PHOTO_ROOT_FOLDER_ID_OR_URL: 'COLE_AQUI_O_ID_OU_URL_DA_PASTA',
+  PHOTO_ROOT_FOLDER_ID_OR_URL: 'https://drive.google.com/drive/folders/1Z6Qba_eI6UdGDJn_arOPMBYDySv9-jii?usp=drive_link',
 
   DAILY_CHECK_SHEET: 'Verificações Diárias',
   MAINTENANCE_SHEET: 'Manutenções',
@@ -148,6 +150,7 @@ function doPost(e) {
     return criarRespostaJson_({
       status: 'success',
       success: true,
+      apiVersion: CONFIG.API_VERSION,
       message: result.message,
       protocol: protocol,
       sheet: result.sheet,
@@ -190,6 +193,10 @@ function doGet() {
     status: 'success',
     success: true,
     service: 'Vesco Fleet Control',
+    apiVersion: CONFIG.API_VERSION,
+    photoUpload: true,
+    protocolResponse: true,
+    retentionMonths: CONFIG.PHOTO_RETENTION_MONTHS,
     message: 'API online e funcionando.',
     timestamp: Utilities.formatDate(
       new Date(),
@@ -219,9 +226,47 @@ function configurarSistema() {
   return {
     success: true,
     message: 'Sistema configurado com sucesso.',
+    apiVersion: CONFIG.API_VERSION,
     folder: rootFolder.getName(),
+    folderId: rootFolder.getId(),
+    folderUrl: rootFolder.getUrl(),
     retentionMonths: CONFIG.PHOTO_RETENTION_MONTHS,
     permanentDelete: CONFIG.PERMANENT_DELETE_OLD_PHOTOS
+  };
+}
+
+
+/**
+ * Execute manualmente para confirmar que a implantação está usando
+ * a pasta correta e que o retorno inclui protocolo e quantidade de fotos.
+ */
+function diagnosticarSistema() {
+  validarConfiguracao_();
+
+  const rootFolder = obterPastaRaizFotos_();
+  const triggers = ScriptApp.getProjectTriggers()
+    .filter(function(trigger) {
+      return trigger.getHandlerFunction() === CONFIG.CLEANUP_TRIGGER_FUNCTION;
+    })
+    .map(function(trigger) {
+      return {
+        functionName: trigger.getHandlerFunction(),
+        eventType: String(trigger.getEventType())
+      };
+    });
+
+  return {
+    success: true,
+    apiVersion: CONFIG.API_VERSION,
+    spreadsheet: obterPlanilha_().getName(),
+    photoFolderName: rootFolder.getName(),
+    photoFolderId: rootFolder.getId(),
+    photoFolderUrl: rootFolder.getUrl(),
+    maxPhotos: CONFIG.MAX_PHOTOS,
+    retentionMonths: CONFIG.PHOTO_RETENTION_MONTHS,
+    permanentDelete: CONFIG.PERMANENT_DELETE_OLD_PHOTOS,
+    cleanupTriggerInstalled: triggers.length > 0,
+    cleanupTriggers: triggers
   };
 }
 

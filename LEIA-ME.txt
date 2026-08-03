@@ -1,76 +1,38 @@
-VESCO FLEET CONTROL - INSTALAÇÃO
+VESCO FLEET CONTROL - VERSÃO 2.2.0-fotos-protocolo
 
-ARQUIVOS DO FRONT-END
-- index.html
-- styles.css
-- script.js
+PASTA DE FOTOS CONFIGURADA:
+https://drive.google.com/drive/folders/1Z6Qba_eI6UdGDJn_arOPMBYDySv9-jii?usp=drive_link
 
-ARQUIVOS DO GOOGLE APPS SCRIPT
-- codigo.gs
-- appsscript.json
+CORREÇÃO DESTA VERSÃO:
+- A resposta do Apps Script agora retorna apiVersion, protocol, photoCount e reportFolderUrl.
+- O front-end não exibe mais sucesso falso com Protocolo "-" e Fotos "0".
+- Caso a implantação esteja antiga, o app mostra uma mensagem clara pedindo nova publicação.
+- Foi adicionada a função diagnosticarSistema().
 
-1. CONFIGURAR A PASTA DE FOTOS
-Abra codigo.gs e altere:
+PASSOS OBRIGATÓRIOS:
+1. Substitua codigo.gs pelo arquivo desta pasta.
+2. Substitua appsscript.json pelo arquivo desta pasta.
+3. Execute configurarSistema() no editor do Apps Script.
+4. Execute diagnosticarSistema() e confira:
+   - apiVersion: 2.2.0-fotos-protocolo
+   - photoFolderId: 1Z6Qba_eI6UdGDJn_arOPMBYDySv9-jii
+   - cleanupTriggerInstalled: true
+5. Vá em Implantar > Gerenciar implantações.
+6. Edite a implantação atual.
+7. Em Versão, selecione Nova versão.
+8. Clique em Implantar.
+9. Mantenha a mesma URL /exec no script.js.
+10. Atualize index.html, styles.css e script.js no seu servidor.
+11. No navegador, pressione Ctrl + F5.
 
-PHOTO_ROOT_FOLDER_ID_OR_URL: 'COLE_AQUI_O_ID_OU_URL_DA_PASTA'
+TESTE DA API:
+Abra a URL /exec no navegador.
+A resposta precisa conter:
+- apiVersion: 2.2.0-fotos-protocolo
+- photoUpload: true
+- protocolResponse: true
 
-Você pode colar o ID ou a URL completa da pasta que criou no Google Drive.
-
-2. CONFIGURAR A PLANILHA
-Se o Apps Script foi aberto dentro da própria planilha, deixe SPREADSHEET_ID vazio.
-Se o projeto for independente, informe o ID da planilha.
-
-3. HABILITAR O SERVIÇO AVANÇADO DO DRIVE
-O arquivo appsscript.json já contém o Drive API v3.
-No Apps Script, abra Configurações do projeto e marque a opção para exibir o arquivo de manifesto.
-Substitua o conteúdo do appsscript.json pelo arquivo fornecido.
-
-Alternativa pelo editor:
-- Serviços
-- Adicionar serviço
-- Google Drive API
-- Versão v3
-- Adicionar
-
-4. EXECUTAR A CONFIGURAÇÃO
-No Apps Script, execute manualmente a função:
-
-configurarSistema
-
-Ela criará as abas, validará a pasta e instalará o gatilho mensal.
-
-5. PUBLICAR
-- Implantar
-- Nova implantação
-- Aplicativo da Web
-- Executar como: você
-- Quem pode acessar: qualquer pessoa
-- Implantar
-
-Copie a URL terminada em /exec e coloque em WEBAPP_URL no script.js.
-
-6. LIMPEZA MENSAL
-A configuração padrão é:
-PHOTO_RETENTION_MONTHS: 1
-PERMANENT_DELETE_OLD_PHOTOS: true
-
-Isso mantém somente as fotos do mês atual. No primeiro dia do mês, as pastas mensais anteriores são excluídas definitivamente.
-A exclusão definitiva não pode ser desfeita.
-
-Para manter o mês atual e o anterior, altere PHOTO_RETENTION_MONTHS para 2.
-Para apenas mover as fotos antigas para a lixeira, altere PERMANENT_DELETE_OLD_PHOTOS para false.
-
-7. ORGANIZAÇÃO NO DRIVE
-A pasta criada por você ficará assim:
-
-VESCO_FROTA_2026-08
-  VESCO-20260803-151200-ABC123 - Caminhao
-    VESCO-..._01_foto.jpg
-    VESCO-..._02_foto.jpg
-    VESCO-..._RESUMO.txt
-
-8. WHATSAPP
-Depois do envio, o aplicativo mostra o protocolo e os botões:
-- Compartilhar no WhatsApp
-- Abrir fotos
-- Fazer novo registro
+RETENÇÃO:
+PHOTO_RETENTION_MONTHS = 1 mantém somente o mês atual.
+A limpeza é executada no dia 1, aproximadamente às 03h.
+PERMANENT_DELETE_OLD_PHOTOS = true exige o serviço avançado Google Drive API v3.
