@@ -1,0 +1,76 @@
+VESCO FLEET CONTROL - INSTALAÇÃO
+
+ARQUIVOS DO FRONT-END
+- index.html
+- styles.css
+- script.js
+
+ARQUIVOS DO GOOGLE APPS SCRIPT
+- codigo.gs
+- appsscript.json
+
+1. CONFIGURAR A PASTA DE FOTOS
+Abra codigo.gs e altere:
+
+PHOTO_ROOT_FOLDER_ID_OR_URL: 'COLE_AQUI_O_ID_OU_URL_DA_PASTA'
+
+Você pode colar o ID ou a URL completa da pasta que criou no Google Drive.
+
+2. CONFIGURAR A PLANILHA
+Se o Apps Script foi aberto dentro da própria planilha, deixe SPREADSHEET_ID vazio.
+Se o projeto for independente, informe o ID da planilha.
+
+3. HABILITAR O SERVIÇO AVANÇADO DO DRIVE
+O arquivo appsscript.json já contém o Drive API v3.
+No Apps Script, abra Configurações do projeto e marque a opção para exibir o arquivo de manifesto.
+Substitua o conteúdo do appsscript.json pelo arquivo fornecido.
+
+Alternativa pelo editor:
+- Serviços
+- Adicionar serviço
+- Google Drive API
+- Versão v3
+- Adicionar
+
+4. EXECUTAR A CONFIGURAÇÃO
+No Apps Script, execute manualmente a função:
+
+configurarSistema
+
+Ela criará as abas, validará a pasta e instalará o gatilho mensal.
+
+5. PUBLICAR
+- Implantar
+- Nova implantação
+- Aplicativo da Web
+- Executar como: você
+- Quem pode acessar: qualquer pessoa
+- Implantar
+
+Copie a URL terminada em /exec e coloque em WEBAPP_URL no script.js.
+
+6. LIMPEZA MENSAL
+A configuração padrão é:
+PHOTO_RETENTION_MONTHS: 1
+PERMANENT_DELETE_OLD_PHOTOS: true
+
+Isso mantém somente as fotos do mês atual. No primeiro dia do mês, as pastas mensais anteriores são excluídas definitivamente.
+A exclusão definitiva não pode ser desfeita.
+
+Para manter o mês atual e o anterior, altere PHOTO_RETENTION_MONTHS para 2.
+Para apenas mover as fotos antigas para a lixeira, altere PERMANENT_DELETE_OLD_PHOTOS para false.
+
+7. ORGANIZAÇÃO NO DRIVE
+A pasta criada por você ficará assim:
+
+VESCO_FROTA_2026-08
+  VESCO-20260803-151200-ABC123 - Caminhao
+    VESCO-..._01_foto.jpg
+    VESCO-..._02_foto.jpg
+    VESCO-..._RESUMO.txt
+
+8. WHATSAPP
+Depois do envio, o aplicativo mostra o protocolo e os botões:
+- Compartilhar no WhatsApp
+- Abrir fotos
+- Fazer novo registro

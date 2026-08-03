@@ -230,6 +230,42 @@
           </div>
         </article>
 
+        <article class="card photo-card" data-photo-section="check">
+          <div class="card-heading">
+            <div class="card-heading__icon card-heading__icon--blue" aria-hidden="true">
+              <i class="fa-solid fa-camera"></i>
+            </div>
+
+            <div>
+              <h2>Fotos da Verificação</h2>
+              <p>Inclua pelo menos uma foto. Recomendado: painel, veículo e problema encontrado.</p>
+            </div>
+          </div>
+
+          <div class="photo-actions">
+            <button type="button" class="photo-action-button" data-photo-camera="check">
+              <i class="fa-solid fa-camera" aria-hidden="true"></i>
+              <span>Tirar foto</span>
+            </button>
+
+            <button type="button" class="photo-action-button photo-action-button--secondary" data-photo-gallery="check">
+              <i class="fa-regular fa-images" aria-hidden="true"></i>
+              <span>Escolher da galeria</span>
+            </button>
+          </div>
+
+          <input id="checkCameraInput" class="visually-hidden" type="file" accept="image/*" capture="environment">
+          <input id="checkGalleryInput" class="visually-hidden" type="file" accept="image/*" multiple>
+
+          <div class="photo-meta">
+            <span id="checkPhotoCount">0 de 5 fotos</span>
+            <span>As imagens são comprimidas antes do envio.</span>
+          </div>
+
+          <div id="checkPhotoPreview" class="photo-preview-grid" aria-live="polite"></div>
+          <p id="checkPhotoError" class="photo-error" hidden>Adicione pelo menos uma foto.</p>
+        </article>
+
         <button id="submitCheck" class="submit-button submit-button--check" type="submit">
           <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
           <span>Registrar Verificação</span>
@@ -351,6 +387,42 @@
           </div>
         </article>
 
+        <article class="card photo-card" data-photo-section="maintenance">
+          <div class="card-heading">
+            <div class="card-heading__icon card-heading__icon--amber" aria-hidden="true">
+              <i class="fa-solid fa-camera"></i>
+            </div>
+
+            <div>
+              <h2>Fotos da Manutenção</h2>
+              <p>Inclua pelo menos uma foto mostrando o problema, peça ou melhoria solicitada.</p>
+            </div>
+          </div>
+
+          <div class="photo-actions">
+            <button type="button" class="photo-action-button photo-action-button--amber" data-photo-camera="maintenance">
+              <i class="fa-solid fa-camera" aria-hidden="true"></i>
+              <span>Tirar foto</span>
+            </button>
+
+            <button type="button" class="photo-action-button photo-action-button--secondary" data-photo-gallery="maintenance">
+              <i class="fa-regular fa-images" aria-hidden="true"></i>
+              <span>Escolher da galeria</span>
+            </button>
+          </div>
+
+          <input id="maintenanceCameraInput" class="visually-hidden" type="file" accept="image/*" capture="environment">
+          <input id="maintenanceGalleryInput" class="visually-hidden" type="file" accept="image/*" multiple>
+
+          <div class="photo-meta">
+            <span id="maintenancePhotoCount">0 de 5 fotos</span>
+            <span>As imagens são comprimidas antes do envio.</span>
+          </div>
+
+          <div id="maintenancePhotoPreview" class="photo-preview-grid" aria-live="polite"></div>
+          <p id="maintenancePhotoError" class="photo-error" hidden>Adicione pelo menos uma foto.</p>
+        </article>
+
         <button id="submitMaint" class="submit-button submit-button--maintenance" type="submit">
           <i class="fa-solid fa-plus" aria-hidden="true"></i>
           <span>Registrar Solicitação</span>
@@ -363,5 +435,53 @@
     <i id="toastIcon" class="fa-solid fa-circle-check" aria-hidden="true"></i>
     <span id="toastMessage">Operação concluída</span>
   </div>
+
+  <dialog id="resultDialog" class="result-dialog">
+    <div class="result-dialog__content">
+      <button id="closeResultDialog" class="dialog-close" type="button" aria-label="Fechar">
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+      </button>
+
+      <div class="result-success-icon" aria-hidden="true">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+
+      <h2>Registro concluído</h2>
+      <p>O relatório e as fotos foram salvos com sucesso.</p>
+
+      <dl class="result-summary">
+        <div>
+          <dt>Protocolo</dt>
+          <dd id="resultProtocol">-</dd>
+        </div>
+        <div>
+          <dt>Veículo</dt>
+          <dd id="resultVehicle">-</dd>
+        </div>
+        <div>
+          <dt>Fotos</dt>
+          <dd id="resultPhotoCount">-</dd>
+        </div>
+      </dl>
+
+      <p id="resultSharingNotice" class="sharing-notice" hidden></p>
+
+      <div class="result-actions">
+        <button id="shareWhatsAppButton" class="result-button result-button--whatsapp" type="button">
+          <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
+          <span>Compartilhar no WhatsApp</span>
+        </button>
+
+        <a id="openPhotosButton" class="result-button result-button--secondary" href="#" target="_blank" rel="noopener">
+          <i class="fa-regular fa-images" aria-hidden="true"></i>
+          <span>Abrir fotos</span>
+        </a>
+
+        <button id="newRecordButton" class="result-button result-button--plain" type="button">
+          Fazer novo registro
+        </button>
+      </div>
+    </div>
+  </dialog>
 </body>
 </html>
