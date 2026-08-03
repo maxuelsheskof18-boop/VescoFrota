@@ -6,7 +6,7 @@
  */
 const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxyufThTQd639n9Vp-MR8pIiD90luMT6zc7imqmwsshRaco-1SLXwb84rhfazgvVPE/exec';
 const TIME_ZONE = 'America/Sao_Paulo';
-const EXPECTED_API_VERSION = '2.2.0-fotos-protocolo';
+const EXPECTED_API_VERSION = '2.3.0-drive-permissions';
 
 const PHOTO_CONFIG = Object.freeze({
   maxPhotos: 5,

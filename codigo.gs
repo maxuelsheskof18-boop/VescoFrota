@@ -18,13 +18,13 @@ const CONFIG = Object.freeze({
    */
   SPREADSHEET_ID: '',
 
-  API_VERSION: '2.2.0-fotos-protocolo',
+  API_VERSION: '2.3.0-drive-permissions',
 
   /**
    * Cole o ID ou a URL completa da pasta que você criou no Google Drive.
    * Exemplo de ID: 1AbCdEfGhIjKlMnOpQrStUvWxYz
    */
-  PHOTO_ROOT_FOLDER_ID_OR_URL: 'https://drive.google.com/drive/folders/1Z6Qba_eI6UdGDJn_arOPMBYDySv9-jii?usp=drive_link',
+  PHOTO_ROOT_FOLDER_ID_OR_URL: '1Z6Qba_eI6UdGDJn_arOPMBYDySv9-jii',
 
   DAILY_CHECK_SHEET: 'Verificações Diárias',
   MAINTENANCE_SHEET: 'Manutenções',
@@ -197,6 +197,7 @@ function doGet() {
     photoUpload: true,
     protocolResponse: true,
     retentionMonths: CONFIG.PHOTO_RETENTION_MONTHS,
+    configuredPhotoFolderId: extrairIdDrive_(CONFIG.PHOTO_ROOT_FOLDER_ID_OR_URL),
     message: 'API online e funcionando.',
     timestamp: Utilities.formatDate(
       new Date(),
@@ -233,6 +234,118 @@ function configurarSistema() {
     retentionMonths: CONFIG.PHOTO_RETENTION_MONTHS,
     permanentDelete: CONFIG.PERMANENT_DELETE_OLD_PHOTOS
   };
+}
+
+
+
+/**
+ * Execute manualmente no editor do Apps Script antes de publicar.
+ *
+ * Esta função:
+ * - força a autorização do Google Drive;
+ * - confirma que a conta possui permissão de edição;
+ * - cria e remove um arquivo temporário de teste.
+ */
+function autorizarAcessoDrive() {
+  validarConfiguracao_();
+
+  const folder = obterPastaRaizFotos_();
+  const executionEmail = obterEmailExecucao_();
+  let testFile = null;
+
+  try {
+    const testName = '.TESTE_PERMISSAO_VESCO_' + Date.now() + '.txt';
+
+    testFile = folder.createFile(
+      testName,
+      'Arquivo temporário criado para validar permissão de escrita do Vesco Fleet Control.',
+      MimeType.PLAIN_TEXT
+    );
+
+    const result = {
+      success: true,
+      message: 'Acesso de leitura e escrita confirmado.',
+      apiVersion: CONFIG.API_VERSION,
+      executionEmail: executionEmail,
+      folderName: folder.getName(),
+      folderId: folder.getId(),
+      folderUrl: folder.getUrl(),
+      canWrite: true
+    };
+
+    testFile.setTrashed(true);
+    return result;
+  } catch (error) {
+    if (testFile) {
+      try {
+        testFile.setTrashed(true);
+      } catch (cleanupError) {
+        console.warn(cleanupError);
+      }
+    }
+
+    throw new Error(
+      'A pasta foi localizada, mas a conta ' + executionEmail +
+      ' não conseguiu criar arquivos nela. ' +
+      'Compartilhe a pasta como Editor. Detalhe: ' +
+      (error && error.message ? error.message : String(error))
+    );
+  }
+}
+
+
+/**
+ * Diagnóstico específico da pasta de fotos.
+ */
+function diagnosticarPastaFotos() {
+  const folderId = extrairIdDrive_(CONFIG.PHOTO_ROOT_FOLDER_ID_OR_URL);
+  const executionEmail = obterEmailExecucao_();
+
+  const result = {
+    success: false,
+    apiVersion: CONFIG.API_VERSION,
+    executionEmail: executionEmail,
+    configuredFolderId: folderId,
+    canOpen: false,
+    canWrite: false
+  };
+
+  try {
+    const folder = DriveApp.getFolderById(folderId);
+
+    result.canOpen = true;
+    result.folderName = folder.getName();
+    result.folderUrl = folder.getUrl();
+
+    let testFile = null;
+
+    try {
+      testFile = folder.createFile(
+        '.TESTE_DIAGNOSTICO_VESCO_' + Date.now() + '.txt',
+        'Teste temporário.',
+        MimeType.PLAIN_TEXT
+      );
+
+      result.canWrite = true;
+      result.success = true;
+      result.message = 'Pasta acessível com permissão de escrita.';
+    } finally {
+      if (testFile) {
+        testFile.setTrashed(true);
+      }
+    }
+  } catch (error) {
+    result.error = error && error.message
+      ? error.message
+      : String(error);
+
+    result.message =
+      'Compartilhe a pasta ' + folderId +
+      ' com ' + executionEmail +
+      ' como Editor e autorize novamente o script.';
+  }
+
+  return result;
 }
 
 
@@ -805,13 +918,34 @@ function validarConfiguracao_() {
 
 function obterPastaRaizFotos_() {
   const folderId = extrairIdDrive_(CONFIG.PHOTO_ROOT_FOLDER_ID_OR_URL);
+  const executionEmail = obterEmailExecucao_();
 
   try {
-    return DriveApp.getFolderById(folderId);
+    const folder = DriveApp.getFolderById(folderId);
+
+    // Force metadata access now, so the error happens here.
+    folder.getName();
+    return folder;
   } catch (error) {
+    const originalMessage = error && error.message
+      ? error.message
+      : String(error);
+
     throw new Error(
-      'Não foi possível abrir a pasta de fotos. Confira o ID e as permissões.'
+      'Não foi possível abrir a pasta de fotos. ' +
+      'Pasta: ' + folderId + '. ' +
+      'Conta que executa o Web App: ' + executionEmail + '. ' +
+      'Compartilhe a pasta com essa conta como Editor e execute autorizarAcessoDrive(). ' +
+      'Detalhe técnico: ' + originalMessage
     );
+  }
+}
+
+function obterEmailExecucao_() {
+  try {
+    return Session.getEffectiveUser().getEmail() || 'não identificada';
+  } catch (error) {
+    return 'não identificada';
   }
 }
 

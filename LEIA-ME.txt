@@ -1,38 +1,48 @@
-VESCO FLEET CONTROL - VERSÃO 2.2.0-fotos-protocolo
+VESCO FLEET CONTROL
+VERSÃO: 2.3.0-drive-permissions
 
-PASTA DE FOTOS CONFIGURADA:
-https://drive.google.com/drive/folders/1Z6Qba_eI6UdGDJn_arOPMBYDySv9-jii?usp=drive_link
+PASTA CONFIGURADA:
+ID: 1Z6Qba_eI6UdGDJn_arOPMBYDySv9-jii
+URL: https://drive.google.com/drive/folders/1Z6Qba_eI6UdGDJn_arOPMBYDySv9-jii
 
-CORREÇÃO DESTA VERSÃO:
-- A resposta do Apps Script agora retorna apiVersion, protocol, photoCount e reportFolderUrl.
-- O front-end não exibe mais sucesso falso com Protocolo "-" e Fotos "0".
-- Caso a implantação esteja antiga, o app mostra uma mensagem clara pedindo nova publicação.
-- Foi adicionada a função diagnosticarSistema().
+O ERRO "NÃO FOI POSSÍVEL ABRIR A PASTA" SIGNIFICA:
+A conta que executa o Web App não possui acesso à pasta, possui apenas acesso de
+leitura, ou ainda não autorizou o escopo do Google Drive.
 
-PASSOS OBRIGATÓRIOS:
-1. Substitua codigo.gs pelo arquivo desta pasta.
-2. Substitua appsscript.json pelo arquivo desta pasta.
-3. Execute configurarSistema() no editor do Apps Script.
-4. Execute diagnosticarSistema() e confira:
-   - apiVersion: 2.2.0-fotos-protocolo
-   - photoFolderId: 1Z6Qba_eI6UdGDJn_arOPMBYDySv9-jii
-   - cleanupTriggerInstalled: true
-5. Vá em Implantar > Gerenciar implantações.
-6. Edite a implantação atual.
-7. Em Versão, selecione Nova versão.
-8. Clique em Implantar.
-9. Mantenha a mesma URL /exec no script.js.
-10. Atualize index.html, styles.css e script.js no seu servidor.
-11. No navegador, pressione Ctrl + F5.
+CORREÇÃO OBRIGATÓRIA:
 
-TESTE DA API:
-Abra a URL /exec no navegador.
-A resposta precisa conter:
-- apiVersion: 2.2.0-fotos-protocolo
-- photoUpload: true
-- protocolResponse: true
+1. Abra a pasta no Google Drive.
+2. Clique em Compartilhar.
+3. Adicione a conta Google que é proprietária/implantadora do Apps Script.
+4. Dê permissão de EDITOR.
+5. No Apps Script, substitua codigo.gs e appsscript.json pelos arquivos desta pasta.
+6. Salve o projeto.
+7. Execute manualmente a função:
+   autorizarAcessoDrive
+8. Aceite todas as permissões solicitadas.
+9. A função precisa retornar:
+   success: true
+   canWrite: true
+10. Execute:
+    configurarSistema
+11. Execute:
+    diagnosticarPastaFotos
+12. Confirme:
+    canOpen: true
+    canWrite: true
+13. Vá em Implantar > Gerenciar implantações.
+14. Edite a implantação atual.
+15. Selecione NOVA VERSÃO.
+16. Configure:
+    Executar como: Eu
+    Quem pode acessar: Qualquer pessoa
+17. Clique em Implantar.
+18. Atualize os arquivos index.html, styles.css e script.js no servidor.
+19. Pressione Ctrl + F5 no navegador.
 
-RETENÇÃO:
-PHOTO_RETENTION_MONTHS = 1 mantém somente o mês atual.
-A limpeza é executada no dia 1, aproximadamente às 03h.
-PERMANENT_DELETE_OLD_PHOTOS = true exige o serviço avançado Google Drive API v3.
+IMPORTANTE:
+- "Qualquer pessoa com o link" é permissão para visualizar, não para o Apps Script gravar.
+- O Apps Script precisa ser Editor da pasta.
+- Quando o Web App está configurado como "Executar como: Eu", ele usa a conta que fez
+  a implantação.
+- Caso a pasta tenha sido criada em outra conta, compartilhe-a com a conta implantadora.
