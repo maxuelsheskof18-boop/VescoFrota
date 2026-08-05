@@ -1,0 +1,11 @@
+CORREÇÃO RÁPIDA
+
+Caso queira mexer somente no arquivo atual, adicione no início do admin.css:
+
+[hidden] {
+  display: none !important;
+}
+
+Depois salve e pressione Ctrl + F5.
+
+Essa regra resolve a tela "Atualizando dados..." presa.

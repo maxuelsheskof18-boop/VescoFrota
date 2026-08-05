@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f172a">
+  <title>Vesco | Painel da Frota</title>
+  <link rel="icon" type="image/png" href="https://cdn.abacus.ai/images/67a2cff5-4c77-47db-9276-c31e8ad096bd.png">
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="admin.css?v=4.1.0">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="config.js?v=4.1.0"></script>
+  <script src="admin.js?v=4.1.0" defer></script>
+</head>
+<body>
+  <section id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <div class="login-logo"><i class="fa-solid fa-truck-moving"></i></div>
+      <span class="eyebrow">Vesco Fleet Control</span>
+      <h1>Painel administrativo</h1>
+      <p>Acompanhe pendências, manutenções e gastos de cada veículo.</p>
+      <form id="loginForm">
+        <label for="adminKey">Código de acesso</label>
+        <div class="password-field">
+          <input id="adminKey" type="password" autocomplete="current-password" required placeholder="Digite o código administrativo">
+          <button id="togglePassword" type="button" aria-label="Mostrar senha"><i class="fa-regular fa-eye"></i></button>
+        </div>
+        <label class="remember-check"><input id="rememberKey" type="checkbox"><span>Lembrar neste dispositivo</span></label>
+        <button id="loginButton" class="primary-button" type="submit"><i class="fa-solid fa-right-to-bracket"></i><span>Entrar no painel</span></button>
+      </form>
+      <a href="index.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Voltar ao app do motorista</a>
+    </div>
+  </section>
+
+  <div id="adminApp" class="admin-layout" hidden>
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo"><i class="fa-solid fa-truck-moving"></i></div>
+        <div><strong>Vesco</strong><span>Gestão de Frota</span></div>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="nav-item is-active" data-view="dashboard"><i class="fa-solid fa-chart-pie"></i><span>Dashboard</span></button>
+        <button class="nav-item" data-view="pending"><i class="fa-solid fa-list-check"></i><span>Pendências</span><b id="navPendingBadge">0</b></button>
+        <button class="nav-item" data-view="new-pending"><i class="fa-solid fa-plus"></i><span>Nova pendência</span></button>
+        <button class="nav-item" data-view="history"><i class="fa-solid fa-clock-rotate-left"></i><span>Histórico</span></button>
+        <button class="nav-item" data-view="vehicles"><i class="fa-solid fa-car-side"></i><span>Veículos</span></button>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="index.html"><i class="fa-solid fa-mobile-screen-button"></i><span>App do motorista</span></a>
+        <button id="logoutButton"><i class="fa-solid fa-arrow-right-from-bracket"></i><span>Sair</span></button>
+      </div>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-topbar">
+        <button id="mobileMenuButton" class="icon-button mobile-menu" type="button"><i class="fa-solid fa-bars"></i></button>
+        <div><span class="eyebrow">Controle e previsão de gastos</span><h1 id="viewTitle">Dashboard da frota</h1></div>
+        <div class="topbar-actions">
+          <span id="lastUpdate" class="last-update">Ainda não atualizado</span>
+          <button id="refreshButton" class="icon-button" type="button" title="Atualizar"><i class="fa-solid fa-rotate"></i></button>
+        </div>
+      </header>
+
+      <div class="admin-content">
+        <section id="view-dashboard" class="admin-view is-active">
+          <div class="filter-card dashboard-filters">
+            <div class="field"><label for="dashboardMonth">Mês de análise</label><input id="dashboardMonth" type="month"></div>
+            <div class="field"><label for="dashboardVehicle">Veículo</label><select id="dashboardVehicle"><option value="">Toda a frota</option></select></div>
+            <button id="clearDashboardFilters" class="secondary-button" type="button"><i class="fa-solid fa-filter-circle-xmark"></i> Limpar</button>
+          </div>
+
+          <div class="kpi-grid">
+            <article class="kpi-card"><div class="kpi-icon kpi-icon--blue"><i class="fa-solid fa-wallet"></i></div><div><span>Gasto no período</span><strong id="kpiPeriodCost">R$ 0,00</strong><small id="kpiPeriodLabel">Mês selecionado</small></div></article>
+            <article class="kpi-card"><div class="kpi-icon kpi-icon--amber"><i class="fa-solid fa-hourglass-half"></i></div><div><span>Pendências abertas</span><strong id="kpiOpenPending">0</strong><small>Aguardando solução</small></div></article>
+            <article class="kpi-card"><div class="kpi-icon kpi-icon--red"><i class="fa-solid fa-triangle-exclamation"></i></div><div><span>Pendências atrasadas</span><strong id="kpiOverdue">0</strong><small>Prazo vencido</small></div></article>
+            <article class="kpi-card"><div class="kpi-icon kpi-icon--green"><i class="fa-solid fa-circle-check"></i></div><div><span>Concluídas no período</span><strong id="kpiCompleted">0</strong><small>Com valor registrado</small></div></article>
+          </div>
+
+          <div class="chart-grid">
+            <article class="panel chart-panel chart-panel--wide"><div class="panel-heading"><div><h2>Evolução mensal dos gastos</h2><p>Valores reais das manutenções concluídas.</p></div></div><div class="chart-wrap"><canvas id="monthlyCostChart"></canvas></div></article>
+            <article class="panel chart-panel"><div class="panel-heading"><div><h2>Gastos por veículo</h2><p>Comparação no período selecionado.</p></div></div><div class="chart-wrap"><canvas id="vehicleCostChart"></canvas></div></article>
+            <article class="panel chart-panel"><div class="panel-heading"><div><h2>Gastos por categoria</h2><p>Onde a frota está consumindo recursos.</p></div></div><div class="chart-wrap"><canvas id="categoryCostChart"></canvas></div></article>
+          </div>
+
+          <article class="panel">
+            <div class="panel-heading"><div><h2>Pendências que exigem atenção</h2><p>Itens atrasados ou com prioridade alta.</p></div><button class="text-button" data-go-view="pending">Ver todas</button></div>
+            <div id="attentionList" class="attention-list"></div>
+          </article>
+        </section>
+
+        <section id="view-pending" class="admin-view">
+          <div class="page-actions"><div><h2>Pendências da frota</h2><p>Controle o que precisa ser feito, responsável e prazo.</p></div><button class="primary-button compact" data-go-view="new-pending"><i class="fa-solid fa-plus"></i> Nova pendência</button></div>
+          <div class="filter-card multi-filter">
+            <div class="field search-field"><label for="pendingSearch">Buscar</label><input id="pendingSearch" type="search" placeholder="Veículo, descrição, código..."></div>
+            <div class="field"><label for="pendingStatusFilter">Status</label><select id="pendingStatusFilter"><option value="">Todos</option><option>Pendente</option><option>Orçamento solicitado</option><option>Aguardando aprovação</option><option>Aprovada</option><option>Em manutenção</option></select></div>
+            <div class="field"><label for="pendingPriorityFilter">Prioridade</label><select id="pendingPriorityFilter"><option value="">Todas</option><option>Alta</option><option>Média</option><option>Baixa</option></select></div>
+            <div class="field"><label for="pendingVehicleFilter">Veículo</label><select id="pendingVehicleFilter"><option value="">Todos</option></select></div>
+          </div>
+          <div class="panel table-panel"><div class="responsive-table"><table><thead><tr><th>Código</th><th>Veículo</th><th>Problema</th><th>Prioridade</th><th>Prazo</th><th>Estimado</th><th>Status</th><th>Ações</th></tr></thead><tbody id="pendingTableBody"></tbody></table></div><div id="pendingEmpty" class="empty-state" hidden><i class="fa-regular fa-circle-check"></i><h3>Nenhuma pendência encontrada</h3><p>Os filtros atuais não retornaram registros.</p></div></div>
+        </section>
+
+        <section id="view-new-pending" class="admin-view">
+          <div class="page-actions"><div><h2>Nova pendência</h2><p>Cadastre manualmente um serviço, problema ou melhoria.</p></div></div>
+          <form id="newPendingForm" class="panel form-panel">
+            <div class="form-grid">
+              <div class="field"><label for="newPendingVehicle">Veículo</label><select id="newPendingVehicle" required><option value="">Selecione</option></select></div>
+              <div class="field"><label for="newPendingKm">Quilometragem</label><input id="newPendingKm" type="number" min="0" step="1" required></div>
+              <div class="field"><label for="newPendingCategory">Categoria</label><select id="newPendingCategory" required></select></div>
+              <div class="field"><label for="newPendingPriority">Prioridade</label><select id="newPendingPriority" required><option value="">Selecione</option><option>Alta</option><option>Média</option><option>Baixa</option></select></div>
+              <div class="field"><label for="newPendingDueDate">Resolver até</label><input id="newPendingDueDate" type="date" required></div>
+              <div class="field"><label for="newPendingAssigned">Responsável</label><input id="newPendingAssigned" type="text" maxlength="150"></div>
+              <div class="field"><label for="newPendingEstimate">Custo estimado (R$)</label><input id="newPendingEstimate" type="number" min="0" step="0.01"></div>
+              <div class="field full"><label for="newPendingDescription">O que precisa ser feito</label><textarea id="newPendingDescription" rows="5" maxlength="3000" required></textarea></div>
+            </div>
+            <div class="admin-photo-box"><div><strong>Fotos opcionais</strong><span>Adicione até 5 imagens do problema.</span></div><label class="file-button"><i class="fa-regular fa-images"></i> Selecionar fotos<input id="newPendingPhotos" type="file" accept="image/*" multiple hidden></label><div id="newPendingPhotoPreview" class="mini-photo-grid"></div></div>
+            <div class="form-actions"><button type="reset" class="secondary-button">Limpar</button><button id="saveNewPending" type="submit" class="primary-button"><i class="fa-solid fa-floppy-disk"></i> Salvar pendência</button></div>
+          </form>
+        </section>
+
+        <section id="view-history" class="admin-view">
+          <div class="page-actions"><div><h2>Histórico de manutenções</h2><p>Serviços concluídos e valores efetivamente gastos.</p></div><strong id="historyTotal" class="history-total">R$ 0,00</strong></div>
+          <div class="filter-card multi-filter">
+            <div class="field search-field"><label for="historySearch">Buscar</label><input id="historySearch" type="search" placeholder="Veículo, serviço, fornecedor..."></div>
+            <div class="field"><label for="historyMonth">Mês</label><input id="historyMonth" type="month"></div>
+            <div class="field"><label for="historyVehicle">Veículo</label><select id="historyVehicle"><option value="">Todos</option></select></div>
+          </div>
+          <div class="panel table-panel"><div class="responsive-table"><table><thead><tr><th>Conclusão</th><th>Veículo</th><th>Serviço</th><th>Categoria</th><th>Fornecedor</th><th>Valor real</th><th>Responsável</th><th>Fotos</th></tr></thead><tbody id="historyTableBody"></tbody></table></div><div id="historyEmpty" class="empty-state" hidden><i class="fa-solid fa-receipt"></i><h3>Nenhuma manutenção encontrada</h3></div></div>
+        </section>
+
+        <section id="view-vehicles" class="admin-view">
+          <div class="page-actions"><div><h2>Veículos cadastrados</h2><p>Ficha, quilometragem, pendências e custo acumulado.</p></div><button id="addVehicleButton" class="primary-button compact"><i class="fa-solid fa-plus"></i> Novo veículo</button></div>
+          <div id="vehicleCards" class="vehicle-grid"></div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <dialog id="resolveDialog" class="modal">
+    <form id="resolveForm" class="modal-card">
+      <button type="button" class="modal-close" data-close-dialog="resolveDialog"><i class="fa-solid fa-xmark"></i></button>
+      <span class="eyebrow">Concluir pendência</span><h2 id="resolveTitle">Registrar serviço realizado</h2><p id="resolveSubtitle"></p>
+      <input id="resolvePendingId" type="hidden">
+      <div class="form-grid">
+        <div class="field"><label for="resolveDate">Data da conclusão</label><input id="resolveDate" type="date" required></div>
+        <div class="field"><label for="resolveKm">Quilometragem</label><input id="resolveKm" type="number" min="0" step="1" required></div>
+        <div class="field"><label for="resolveCategory">Categoria</label><select id="resolveCategory" required></select></div>
+        <div class="field"><label for="resolveActualCost">Valor gasto (R$)</label><input id="resolveActualCost" type="number" min="0" step="0.01" required></div>
+        <div class="field"><label for="resolveSupplier">Oficina / fornecedor</label><input id="resolveSupplier" type="text" maxlength="200"></div>
+        <div class="field"><label for="resolvePayment">Forma de pagamento</label><select id="resolvePayment"><option value="">Não informado</option><option>Pix</option><option>Dinheiro</option><option>Cartão</option><option>Boleto</option><option>Transferência</option><option>Outro</option></select></div>
+        <div class="field"><label for="resolveInvoice">Nota fiscal / comprovante</label><input id="resolveInvoice" type="text" maxlength="150"></div>
+        <div class="field"><label for="resolveResponsible">Responsável pela conclusão</label><input id="resolveResponsible" type="text" maxlength="150" required></div>
+        <div class="field full"><label for="resolveService">Serviço realizado</label><textarea id="resolveService" rows="4" maxlength="3000" required></textarea></div>
+        <div class="field full"><label for="resolveNotes">Observações finais</label><textarea id="resolveNotes" rows="3" maxlength="2000"></textarea></div>
+      </div>
+      <div class="admin-photo-box"><div><strong>Fotos da conclusão</strong><span>Opcional: antes, depois, nota ou peça trocada.</span></div><label class="file-button"><i class="fa-regular fa-images"></i> Selecionar fotos<input id="resolvePhotos" type="file" accept="image/*" multiple hidden></label><div id="resolvePhotoPreview" class="mini-photo-grid"></div></div>
+      <div class="form-actions"><button type="button" class="secondary-button" data-close-dialog="resolveDialog">Cancelar</button><button id="resolveSubmit" type="submit" class="success-button"><i class="fa-solid fa-circle-check"></i> Concluir manutenção</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="editPendingDialog" class="modal">
+    <form id="editPendingForm" class="modal-card modal-card--small">
+      <button type="button" class="modal-close" data-close-dialog="editPendingDialog"><i class="fa-solid fa-xmark"></i></button>
+      <span class="eyebrow">Atualizar pendência</span><h2 id="editPendingTitle">Editar</h2>
+      <input id="editPendingId" type="hidden">
+      <div class="form-grid">
+        <div class="field"><label for="editPendingPriority">Prioridade</label><select id="editPendingPriority" required><option>Alta</option><option>Média</option><option>Baixa</option></select></div>
+        <div class="field"><label for="editPendingStatus">Status</label><select id="editPendingStatus" required><option>Pendente</option><option>Orçamento solicitado</option><option>Aguardando aprovação</option><option>Aprovada</option><option>Em manutenção</option></select></div>
+        <div class="field"><label for="editPendingDueDate">Prazo</label><input id="editPendingDueDate" type="date" required></div>
+        <div class="field"><label for="editPendingEstimate">Custo estimado</label><input id="editPendingEstimate" type="number" min="0" step="0.01"></div>
+        <div class="field"><label for="editPendingAssigned">Responsável</label><input id="editPendingAssigned" type="text" maxlength="150"></div>
+        <div class="field"><label for="editPendingCategory">Categoria</label><select id="editPendingCategory" required></select></div>
+        <div class="field full"><label for="editPendingDescription">Descrição</label><textarea id="editPendingDescription" rows="4" maxlength="3000" required></textarea></div>
+      </div>
+      <div class="form-actions"><button type="button" class="secondary-button" data-close-dialog="editPendingDialog">Cancelar</button><button id="editPendingSubmit" type="submit" class="primary-button">Salvar alterações</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="vehicleDialog" class="modal">
+    <form id="vehicleForm" class="modal-card modal-card--small">
+      <button type="button" class="modal-close" data-close-dialog="vehicleDialog"><i class="fa-solid fa-xmark"></i></button>
+      <span class="eyebrow">Cadastro da frota</span><h2 id="vehicleDialogTitle">Novo veículo</h2>
+      <input id="vehicleId" type="hidden">
+      <div class="form-grid">
+        <div class="field"><label for="vehicleName">Nome / identificação</label><input id="vehicleName" type="text" maxlength="150" required placeholder="Ex.: Doblò Branca"></div>
+        <div class="field"><label for="vehiclePlate">Placa</label><input id="vehiclePlate" type="text" maxlength="20" placeholder="ABC1D23"></div>
+        <div class="field"><label for="vehicleModel">Modelo</label><input id="vehicleModel" type="text" maxlength="150"></div>
+        <div class="field"><label for="vehicleYear">Ano</label><input id="vehicleYear" type="number" min="1950" max="2100"></div>
+        <div class="field"><label for="vehicleType">Tipo</label><select id="vehicleType"><option>Carro</option><option>Van</option><option>Caminhão</option><option>Utilitário</option><option>Outro</option></select></div>
+        <div class="field"><label for="vehicleKm">KM atual</label><input id="vehicleKm" type="number" min="0" step="1"></div>
+        <div class="field"><label for="vehicleStatus">Status</label><select id="vehicleStatus"><option>Ativo</option><option>Em manutenção</option><option>Inativo</option></select></div>
+      </div>
+      <div class="form-actions"><button type="button" class="secondary-button" data-close-dialog="vehicleDialog">Cancelar</button><button id="vehicleSubmit" type="submit" class="primary-button">Salvar veículo</button></div>
+    </form>
+  </dialog>
+
+  <div id="adminToast" class="admin-toast"><i id="adminToastIcon" class="fa-solid fa-circle-check"></i><span id="adminToastMessage"></span></div>
+  <div id="loadingOverlay" class="loading-overlay" hidden><div class="loader"></div><strong>Atualizando dados...</strong></div>
+</body>
+</html>

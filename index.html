@@ -11,6 +11,7 @@
   <link rel="preconnect" href="https://cdnjs.cloudflare.com">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="styles.css">
+  <script src="config.js"></script>
   <script src="script.js" defer></script>
 </head>
 
@@ -28,9 +29,15 @@
         </div>
       </div>
 
-      <div class="header-clock">
-        <strong id="currentDateTime">Carregando...</strong>
-        <span>Horário de Brasília (BRT)</span>
+      <div class="header-actions">
+        <a class="admin-shortcut" href="admin.html" title="Abrir painel administrativo">
+          <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+          <span>Painel da Frota</span>
+        </a>
+        <div class="header-clock">
+          <strong id="currentDateTime">Carregando...</strong>
+          <span>Horário de Brasília (BRT)</span>
+        </div>
       </div>
     </div>
   </header>
@@ -96,6 +103,7 @@
               <input
                 id="vehicleCheck"
                 name="vehicleCheck"
+                list="vehicleOptions"
                 type="text"
                 maxlength="200"
                 placeholder="Ex.: ABC1D23 - VW Cargo"
@@ -139,7 +147,7 @@
 
             <div>
               <h2>Verificações do Veículo</h2>
-              <p>Selecione uma opção em cada item antes de registrar.</p>
+              <p>Selecione uma opção em cada item. Tudo que não estiver OK abrirá uma pendência automaticamente no painel.</p>
             </div>
           </div>
 
@@ -227,6 +235,10 @@
               maxlength="2000"
               placeholder="Descreva problemas, ruídos, sinais ou serviços necessários."
             ></textarea>
+            <label class="inline-check">
+              <input id="createObservationPending" type="checkbox" checked>
+              <span>Criar pendência quando houver observação, mesmo que o checklist esteja todo OK.</span>
+            </label>
           </div>
         </article>
 
@@ -284,7 +296,7 @@
 
             <div>
               <h2>Registrar Manutenção / Melhoria</h2>
-              <p>Registre uma necessidade de manutenção, troca de peça ou melhoria.</p>
+              <p>A solicitação entra imediatamente no painel como pendência, com prazo e responsável.</p>
             </div>
           </div>
 
@@ -306,6 +318,7 @@
               <input
                 id="vehicleMaint"
                 name="vehicleMaint"
+                list="vehicleOptions"
                 type="text"
                 maxlength="200"
                 placeholder="Ex.: ABC1D23 - Ford Cargo"
@@ -358,6 +371,33 @@
                 <option value="media">Média</option>
                 <option value="baixa">Baixa</option>
               </select>
+            </div>
+
+            <div class="field-group">
+              <label for="maintenanceCategory">Categoria</label>
+              <select id="maintenanceCategory" name="maintenanceCategory" required>
+                <option value="">Selecione</option>
+                <option value="Óleo e filtros">Óleo e filtros</option>
+                <option value="Pneus">Pneus</option>
+                <option value="Freios">Freios</option>
+                <option value="Suspensão">Suspensão</option>
+                <option value="Motor">Motor</option>
+                <option value="Arrefecimento">Arrefecimento</option>
+                <option value="Elétrica / Luzes">Elétrica / Luzes</option>
+                <option value="Funilaria">Funilaria</option>
+                <option value="Documentação">Documentação</option>
+                <option value="Outros">Outros</option>
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label for="dueDateMaint">Prazo para resolver</label>
+              <input id="dueDateMaint" name="dueDateMaint" type="date" required>
+            </div>
+
+            <div class="field-group">
+              <label for="assignedTo">Responsável por resolver</label>
+              <input id="assignedTo" name="assignedTo" type="text" maxlength="150" placeholder="Opcional">
             </div>
 
             <div class="field-group field-group--full">
@@ -431,6 +471,8 @@
     </section>
   </main>
 
+  <datalist id="vehicleOptions"></datalist>
+
   <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true">
     <i id="toastIcon" class="fa-solid fa-circle-check" aria-hidden="true"></i>
     <span id="toastMessage">Operação concluída</span>
@@ -461,6 +503,10 @@
         <div>
           <dt>Fotos</dt>
           <dd id="resultPhotoCount">-</dd>
+        </div>
+        <div>
+          <dt>Pendências</dt>
+          <dd id="resultPendingCount">0</dd>
         </div>
       </dl>
 

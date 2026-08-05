@@ -1,48 +1,48 @@
-VESCO FLEET CONTROL
-VERSÃO: 2.3.0-drive-permissions
+VESCO FLEET CONTROL — V4.1 DASHBOARD CORRIGIDO
 
-PASTA CONFIGURADA:
-ID: 1Z6Qba_eI6UdGDJn_arOPMBYDySv9-jii
-URL: https://drive.google.com/drive/folders/1Z6Qba_eI6UdGDJn_arOPMBYDySv9-jii
+CORREÇÃO PRINCIPAL
+O painel ficava permanentemente em "Atualizando dados..." porque as classes CSS
+.login-screen, .admin-layout e .loading-overlay definiam display:grid. Isso podia
+sobrescrever o atributo HTML hidden.
 
-O ERRO "NÃO FOI POSSÍVEL ABRIR A PASTA" SIGNIFICA:
-A conta que executa o Web App não possui acesso à pasta, possui apenas acesso de
-leitura, ou ainda não autorizou o escopo do Google Drive.
+A versão 4.1 adiciona:
+- [hidden] { display: none !important; }
+- timeout de 30 segundos nas chamadas ao Apps Script
+- mensagem clara quando a implantação ou URL /exec não responde
+- estado inicial explícito para login, painel e overlay
+- fallback caso o Chart.js não carregue
+- parâmetros ?v=4.1.0 para evitar cache dos arquivos
 
-CORREÇÃO OBRIGATÓRIA:
+COMO ATUALIZAR
+1. Substitua estes arquivos no front-end:
+   - admin.html
+   - admin.css
+   - admin.js
+   - config.js
 
-1. Abra a pasta no Google Drive.
-2. Clique em Compartilhar.
-3. Adicione a conta Google que é proprietária/implantadora do Apps Script.
-4. Dê permissão de EDITOR.
-5. No Apps Script, substitua codigo.gs e appsscript.json pelos arquivos desta pasta.
-6. Salve o projeto.
-7. Execute manualmente a função:
-   autorizarAcessoDrive
-8. Aceite todas as permissões solicitadas.
-9. A função precisa retornar:
-   success: true
-   canWrite: true
-10. Execute:
-    configurarSistema
-11. Execute:
-    diagnosticarPastaFotos
-12. Confirme:
-    canOpen: true
-    canWrite: true
-13. Vá em Implantar > Gerenciar implantações.
-14. Edite a implantação atual.
-15. Selecione NOVA VERSÃO.
-16. Configure:
-    Executar como: Eu
-    Quem pode acessar: Qualquer pessoa
-17. Clique em Implantar.
-18. Atualize os arquivos index.html, styles.css e script.js no servidor.
-19. Pressione Ctrl + F5 no navegador.
+2. O codigo.gs NÃO precisa ser alterado por causa desta correção visual.
+   Ele foi mantido no pacote para facilitar a instalação completa.
 
-IMPORTANTE:
-- "Qualquer pessoa com o link" é permissão para visualizar, não para o Apps Script gravar.
-- O Apps Script precisa ser Editor da pasta.
-- Quando o Web App está configurado como "Executar como: Eu", ele usa a conta que fez
-  a implantação.
-- Caso a pasta tenha sido criada em outra conta, compartilhe-a com a conta implantadora.
+3. Reinicie o Live Server.
+
+4. Abra:
+   http://127.0.0.1:5500/admin.html
+
+5. Pressione:
+   Ctrl + F5
+
+6. Código administrativo padrão:
+   VESCO2026
+
+SE A TELA EXIBIR ERRO APÓS 30 SEGUNDOS
+- abra config.js;
+- confirme a URL terminada em /exec;
+- abra a URL /exec diretamente no navegador;
+- confirme que o retorno mostra apiVersion 4.0.0-fleet-dashboard;
+- no Apps Script, publique uma nova versão da implantação.
+
+ARQUIVOS
+- index.html / styles.css / script.js: aplicativo do motorista
+- admin.html / admin.css / admin.js: painel administrativo
+- config.js: URL da API
+- codigo.gs / appsscript.json: back-end Google Apps Script

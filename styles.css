@@ -966,3 +966,58 @@ textarea.is-invalid {
     padding: 25px 18px 20px;
   }
 }
+
+
+/* Recursos da versão com painel administrativo */
+.header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 18px;
+}
+
+.admin-shortcut {
+  min-height: 40px;
+  padding: 9px 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #bfdbfe;
+  border-radius: 11px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+  transition: 0.2s ease;
+}
+
+.admin-shortcut:hover {
+  border-color: #93c5fd;
+  background: #dbeafe;
+  transform: translateY(-1px);
+}
+
+.inline-check {
+  margin-top: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  color: #475569;
+  font-size: 12px;
+  line-height: 1.45;
+  cursor: pointer;
+}
+
+.inline-check input {
+  width: 17px;
+  height: 17px;
+  margin-top: 1px;
+  accent-color: #2563eb;
+}
+
+@media (max-width: 700px) {
+  .header-actions { gap: 8px; }
+  .admin-shortcut span { display: none; }
+  .admin-shortcut { width: 40px; padding: 0; justify-content: center; }
+}

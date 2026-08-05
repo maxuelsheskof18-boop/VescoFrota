@@ -4,9 +4,9 @@
  * URL do Web App publicado no Google Apps Script.
  * Mantenha sempre a URL final terminada em /exec.
  */
-const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxyufThTQd639n9Vp-MR8pIiD90luMT6zc7imqmwsshRaco-1SLXwb84rhfazgvVPE/exec';
-const TIME_ZONE = 'America/Sao_Paulo';
-const EXPECTED_API_VERSION = '2.3.0-drive-permissions';
+const WEBAPP_URL = window.VESCO_CONFIG.webAppUrl;
+const TIME_ZONE = window.VESCO_CONFIG.timeZone;
+const EXPECTED_API_VERSION = window.VESCO_CONFIG.apiVersion;
 
 const PHOTO_CONFIG = Object.freeze({
   maxPhotos: 5,
@@ -37,6 +37,8 @@ const elements = {
   resultProtocol: document.getElementById('resultProtocol'),
   resultVehicle: document.getElementById('resultVehicle'),
   resultPhotoCount: document.getElementById('resultPhotoCount'),
+  resultPendingCount: document.getElementById('resultPendingCount'),
+  vehicleOptions: document.getElementById('vehicleOptions'),
   resultSharingNotice: document.getElementById('resultSharingNotice')
 };
 
@@ -100,6 +102,13 @@ function setCurrentDateTimes() {
     const input = document.getElementById(id);
     if (input) input.value = timeValue;
   });
+
+  const dueDateInput = document.getElementById('dueDateMaint');
+  if (dueDateInput && !dueDateInput.value) {
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + 3);
+    dueDateInput.value = new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE }).format(dueDate);
+  }
 }
 
 function updateHeaderClock() {
@@ -528,6 +537,27 @@ function serializePhotos(section) {
   }));
 }
 
+function createRequestId() {
+  if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+  return `req-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+async function loadPublicConfig() {
+  try {
+    const result = await postJSON({ type: 'publicConfig' });
+    if (!result.success || !Array.isArray(result.vehicles)) return;
+
+    elements.vehicleOptions.innerHTML = '';
+    result.vehicles.forEach((vehicle) => {
+      const option = document.createElement('option');
+      option.value = vehicle.displayName || vehicle.name;
+      elements.vehicleOptions.appendChild(option);
+    });
+  } catch (error) {
+    console.warn('Não foi possível carregar os veículos cadastrados:', error);
+  }
+}
+
 /**
  * Envia o JSON sem Content-Type application/json.
  * Assim o navegador não dispara o preflight OPTIONS bloqueado pelo Web App.
@@ -620,6 +650,7 @@ function openResultDialog(result, vehicle) {
   elements.resultProtocol.textContent = result.protocol;
   elements.resultVehicle.textContent = vehicle || '-';
   elements.resultPhotoCount.textContent = String(result.photoCount);
+  elements.resultPendingCount.textContent = String(result.pendingCount || 0);
 
   if (result.reportFolderUrl) {
     elements.openPhotosButton.href = result.reportFolderUrl;
@@ -691,6 +722,7 @@ async function handleCheckSubmit(event) {
 
   const payload = {
     type: 'dailyCheck',
+    requestId: createRequestId(),
     timestamp: combineDateTimeForBR(date, time),
     driverName: document.getElementById('driverName').value.trim(),
     vehicle,
@@ -701,6 +733,7 @@ async function handleCheckSubmit(event) {
     lightsStatus: document.getElementById('lightsStatus').value,
     tiresStatus: document.getElementById('tiresStatus').value,
     observations: document.getElementById('observationsCheck').value.trim(),
+    createObservationPending: document.getElementById('createObservationPending').checked,
     photos: serializePhotos('check')
   };
 
@@ -735,12 +768,16 @@ async function handleMaintenanceSubmit(event) {
 
   const payload = {
     type: 'maintenance',
+    requestId: createRequestId(),
     timestamp: combineDateTimeForBR(date, time),
     responsible: document.getElementById('responsible').value.trim(),
     vehicle,
     km: document.getElementById('kmMaint').value.trim(),
     maintenanceType: document.getElementById('maintenanceType').value,
     priority: document.getElementById('priority').value,
+    category: document.getElementById('maintenanceCategory').value,
+    dueDate: document.getElementById('dueDateMaint').value,
+    assignedTo: document.getElementById('assignedTo').value.trim(),
     description: document.getElementById('description').value.trim(),
     cost: document.getElementById('cost').value.trim(),
     photos: serializePhotos('maintenance')
@@ -782,6 +819,7 @@ function initializeApp() {
   elements.maintenanceForm.addEventListener('submit', handleMaintenanceSubmit);
 
   setCurrentDateTimes();
+  loadPublicConfig();
   updateHeaderClock();
   window.setInterval(updateHeaderClock, 1000);
 }
