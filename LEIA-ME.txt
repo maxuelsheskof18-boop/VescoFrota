@@ -1,48 +1,52 @@
-VESCO FLEET CONTROL — V4.1 DASHBOARD CORRIGIDO
+VESCO FLEET CONTROL — V4.2
 
-CORREÇÃO PRINCIPAL
-O painel ficava permanentemente em "Atualizando dados..." porque as classes CSS
-.login-screen, .admin-layout e .loading-overlay definiam display:grid. Isso podia
-sobrescrever o atributo HTML hidden.
+VERSÃO DA API:
+4.2.0-vehicle-operation-fix
 
-A versão 4.1 adiciona:
-- [hidden] { display: none !important; }
-- timeout de 30 segundos nas chamadas ao Apps Script
-- mensagem clara quando a implantação ou URL /exec não responde
-- estado inicial explícito para login, painel e overlay
-- fallback caso o Chart.js não carregue
-- parâmetros ?v=4.1.0 para evitar cache dos arquivos
+ERRO CORRIGIDO:
+"Operação inválida: Utilitário"
 
-COMO ATUALIZAR
-1. Substitua estes arquivos no front-end:
-   - admin.html
-   - admin.css
-   - admin.js
-   - config.js
+CAUSA:
+O painel usava o mesmo campo "type" para:
+- identificar a operação adminCreateVehicle;
+- armazenar o tipo do veículo, como Utilitário ou Caminhão.
 
-2. O codigo.gs NÃO precisa ser alterado por causa desta correção visual.
-   Ele foi mantido no pacote para facilitar a instalação completa.
+O tipo do veículo sobrescrevia o nome da operação.
 
-3. Reinicie o Live Server.
+CORREÇÃO:
+- operações administrativas agora usam o campo reservado "operation";
+- o tipo do veículo agora é enviado como "vehicleType";
+- "type" continua sendo enviado para compatibilidade;
+- o back-end aceita operation ou type;
+- o dashboard cria automaticamente a frota inicial se a aba Veículos estiver vazia.
 
-4. Abra:
-   http://127.0.0.1:5500/admin.html
+VEÍCULOS INICIAIS:
+- Doblò Branca
+- Doblò Verde
+- Doblò Cinza
+- Caminhão Pequeno
+- Caminhão Grande
 
-5. Pressione:
-   Ctrl + F5
+ATUALIZAÇÃO:
+1. Substitua codigo.gs.
+2. Salve o Apps Script.
+3. Execute configurarSistema().
+4. Entre em Implantar > Gerenciar implantações.
+5. Edite a implantação atual.
+6. Selecione Nova versão.
+7. Mantenha Executar como: Eu.
+8. Mantenha Quem pode acessar: Qualquer pessoa.
+9. Clique em Implantar.
+10. Substitua no front-end:
+    admin.html
+    admin.css
+    admin.js
+    config.js
+11. Reinicie o Live Server.
+12. Pressione Ctrl + F5.
 
-6. Código administrativo padrão:
-   VESCO2026
-
-SE A TELA EXIBIR ERRO APÓS 30 SEGUNDOS
-- abra config.js;
-- confirme a URL terminada em /exec;
-- abra a URL /exec diretamente no navegador;
-- confirme que o retorno mostra apiVersion 4.0.0-fleet-dashboard;
-- no Apps Script, publique uma nova versão da implantação.
-
-ARQUIVOS
-- index.html / styles.css / script.js: aplicativo do motorista
-- admin.html / admin.css / admin.js: painel administrativo
-- config.js: URL da API
-- codigo.gs / appsscript.json: back-end Google Apps Script
+TESTE:
+- Abra a seção Veículos.
+- Os cinco veículos iniciais devem aparecer.
+- Cadastre um novo veículo do tipo Utilitário.
+- O erro "Operação inválida" não deve mais ocorrer.

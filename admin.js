@@ -34,8 +34,20 @@ function cacheElements() {
   ['loginScreen','loginForm','adminKey','rememberKey','loginButton','togglePassword','adminApp','sidebar','mobileMenuButton','logoutButton','refreshButton','lastUpdate','viewTitle','navPendingBadge','dashboardMonth','dashboardVehicle','clearDashboardFilters','kpiPeriodCost','kpiPeriodLabel','kpiOpenPending','kpiOverdue','kpiCompleted','attentionList','pendingSearch','pendingStatusFilter','pendingPriorityFilter','pendingVehicleFilter','pendingTableBody','pendingEmpty','newPendingForm','newPendingVehicle','newPendingKm','newPendingCategory','newPendingPriority','newPendingDueDate','newPendingAssigned','newPendingEstimate','newPendingDescription','newPendingPhotos','newPendingPhotoPreview','saveNewPending','historySearch','historyMonth','historyVehicle','historyTotal','historyTableBody','historyEmpty','vehicleCards','addVehicleButton','resolveDialog','resolveForm','resolveTitle','resolveSubtitle','resolvePendingId','resolveDate','resolveKm','resolveCategory','resolveActualCost','resolveSupplier','resolvePayment','resolveInvoice','resolveResponsible','resolveService','resolveNotes','resolvePhotos','resolvePhotoPreview','resolveSubmit','editPendingDialog','editPendingForm','editPendingTitle','editPendingId','editPendingPriority','editPendingStatus','editPendingDueDate','editPendingEstimate','editPendingAssigned','editPendingCategory','editPendingDescription','editPendingSubmit','vehicleDialog','vehicleForm','vehicleDialogTitle','vehicleId','vehicleName','vehiclePlate','vehicleModel','vehicleYear','vehicleType','vehicleKm','vehicleStatus','vehicleSubmit','adminToast','adminToastIcon','adminToastMessage','loadingOverlay'].forEach(id => el[id] = byId(id));
 }
 
-async function api(type, data = {}, includeAdmin = true) {
-  const payload = { type, ...data };
+async function api(operation, data = {}, includeAdmin = true) {
+  /*
+   * "type" is kept for compatibility with older deployments.
+   * "operation" is the reserved field used by the new back-end.
+   *
+   * Data fields are inserted first so they can never overwrite
+   * the operation name.
+   */
+  const payload = {
+    ...data,
+    type: operation,
+    operation
+  };
+
   if (includeAdmin) payload.adminKey = state.adminKey;
 
   const controller = new AbortController();
@@ -272,7 +284,7 @@ async function submitEditPending(event){
 }
 async function submitVehicle(event){
   event.preventDefault();setButtonLoading(el.vehicleSubmit,true);
-  try{const result=await api(el.vehicleId.value?'adminUpdateVehicle':'adminCreateVehicle',{vehicleId:el.vehicleId.value,name:el.vehicleName.value.trim(),plate:el.vehiclePlate.value.trim(),model:el.vehicleModel.value.trim(),year:el.vehicleYear.value,type:el.vehicleType.value,km:el.vehicleKm.value,status:el.vehicleStatus.value});showToast(result.message);el.vehicleDialog.close();await refreshData(false);}catch(error){showToast(error.message,'error');}finally{setButtonLoading(el.vehicleSubmit,false);}
+  try{const result=await api(el.vehicleId.value?'adminUpdateVehicle':'adminCreateVehicle',{vehicleId:el.vehicleId.value,name:el.vehicleName.value.trim(),plate:el.vehiclePlate.value.trim(),model:el.vehicleModel.value.trim(),year:el.vehicleYear.value,vehicleType:el.vehicleType.value,km:el.vehicleKm.value,status:el.vehicleStatus.value});showToast(result.message);el.vehicleDialog.close();await refreshData(false);}catch(error){showToast(error.message,'error');}finally{setButtonLoading(el.vehicleSubmit,false);}
 }
 
 function canvasToBlob(canvas,type,quality){return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('Falha ao comprimir imagem.')),type,quality));}

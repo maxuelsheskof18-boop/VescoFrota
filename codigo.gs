@@ -12,7 +12,7 @@
 
 const CONFIG = Object.freeze({
   SPREADSHEET_ID: '',
-  API_VERSION: '4.0.0-fleet-dashboard',
+  API_VERSION: '4.2.0-vehicle-operation-fix',
   ADMIN_ACCESS_KEY: 'VESCO2026',
   PHOTO_ROOT_FOLDER_ID_OR_URL: '1Z6Qba_eI6UdGDJn_arOPMBYDySv9-jii',
   TIME_ZONE: 'America/Sao_Paulo',
@@ -75,15 +75,22 @@ function doPost(e) {
     }
 
     const payload = JSON.parse(e.postData.contents);
-    const type = String(payload.type || '').trim();
 
-    if (!type) {
+    /*
+     * "operation" is the reserved field in the new front-end.
+     * "type" remains supported for the driver app and older versions.
+     */
+    const operation = String(
+      payload.operation || payload.type || ''
+    ).trim();
+
+    if (!operation) {
       throw new Error('O tipo da operação não foi informado.');
     }
 
     let result;
 
-    switch (type) {
+    switch (operation) {
       case 'publicConfig':
         result = obterConfiguracaoPublica_();
         break;
@@ -118,7 +125,7 @@ function doPost(e) {
         result = atualizarVeiculoAdmin_(payload);
         break;
       default:
-        throw new Error('Operação inválida: ' + type);
+        throw new Error('Operação inválida: ' + operation);
     }
 
     return respostaJson_(Object.assign({
@@ -778,7 +785,7 @@ function criarVeiculoAdmin_(payload) {
       'Placa': protegerCelula_(plate),
       'Modelo': protegerCelula_(textoOpcional_(payload.model, 150)),
       'Ano': numeroOpcional_(payload.year, 'Ano'),
-      'Tipo': protegerCelula_(textoOpcional_(payload.type, 50) || 'Outro'),
+      'Tipo': protegerCelula_(textoOpcional_(payload.vehicleType || payload.type, 50) || 'Outro'),
       'KM Atual': numeroOpcional_(payload.km, 'Quilometragem'),
       'Status': statusVeiculo_(payload.status),
       'Data Cadastro': now,
@@ -809,7 +816,7 @@ function atualizarVeiculoAdmin_(payload) {
       'Placa': protegerCelula_(textoOpcional_(payload.plate, 20).toUpperCase()),
       'Modelo': protegerCelula_(textoOpcional_(payload.model, 150)),
       'Ano': numeroOpcional_(payload.year, 'Ano'),
-      'Tipo': protegerCelula_(textoOpcional_(payload.type, 50) || 'Outro'),
+      'Tipo': protegerCelula_(textoOpcional_(payload.vehicleType || payload.type, 50) || 'Outro'),
       'KM Atual': numeroOpcional_(payload.km, 'Quilometragem'),
       'Status': statusVeiculo_(payload.status),
       'Última Atualização': new Date()
@@ -823,6 +830,12 @@ function atualizarVeiculoAdmin_(payload) {
 }
 
 function obterDashboardAdmin_() {
+  /*
+   * Guarantees the initial fleet even when configurarSistema()
+   * was not executed after installing the project.
+   */
+  semearVeiculosIniciais_();
+
   return {
     message: 'Dashboard carregado.',
     vehicles: listarVeiculos_(),
